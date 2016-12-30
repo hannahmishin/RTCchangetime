@@ -1,0 +1,95 @@
+void manualTimeCheck(){
+
+  int EDITstate = 0;
+  int HOURstate;
+  int lastHOURstate;
+  int MINstate;
+
+  boolean hoursHIT = false;
+  boolean minsHIT = false;
+
+  EDITstate = digitalRead (EDITbutton);
+
+  while (EDITstate == HIGH){
+
+    EDITstate = digitalRead (EDITbutton);
+    editMode = true;
+
+    //////////BLINK ALL TUBES||||||
+    
+    HOURstate  = digitalRead (HOURbutton);
+    MINstate = digitalRead (MINbutton);
+    //set the hoursSET temp hours to current hours.
+
+    if (HOURstate == HIGH && hoursHIT == false){
+      hoursHIT = true;
+      hoursSET = hours; 
+      //blink hours tubes on off
+    }
+
+    if (HOURstate == HIGH){
+      Serial.println ("hours ++");
+      delay(150); //simple delay as debounce - may need actual debouncing
+      hoursSET = hoursSET + 1;
+      Serial.print ("hours :");
+      Serial.println (hoursSET);
+
+      //if hours go past midnight - reset
+      if (hoursSET >24){
+        hoursSET = 0;
+      }
+    }
+    ///DISPLAY VFD HOURS AND MINS
+
+    if (MINstate == HIGH && minsHIT == false){
+      minsHIT = true;
+      if (minsHIT == true){
+        minsSET = minutes; 
+        //blink hours tubes on off
+      }
+    }
+    if (MINstate == HIGH){
+      delay(150);//simple delay as debounce - may need actual debouncing
+      
+      Serial.println ("mins ++");
+     
+      minsSET = minsSET + 1;
+      
+      Serial.print ("mins :");
+      Serial.println (minsSET);
+      
+      if (minsSET > 60){
+        minsSET = 0;
+      }
+    }
+  }
+  //if edit button pressed again, edit mode cancelled, write to chip and exit function.
+  if(EDITstate == LOW && editMode == true) {
+    
+    hours = hoursSET;
+    minutes = minsSET;
+    
+    ///set new time on RTC
+    Wire.beginTransmission(0x68); // activate DS1307
+    Wire.write(0); // where to begin
+    Wire.write(0x00);          //seconds
+    Wire.write(minutes);          //minutes
+    Wire.write(0x80 | hoursSET);    //hours (24hr time)
+    Wire.write(0x10); // Control 0x10 produces a 1 HZ square wave on pin 7. 
+    Wire.endTransmission();
+
+    /// reset booleans
+    editMode = false; 
+    hoursHIT = false;
+    minsHIT = false;
+    Serial.println("EDIT MODE FINISHED");
+    //BLINK ALL TUBES
+  }
+
+}
+
+
+
+
+
+
