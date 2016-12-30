@@ -1,0 +1,40 @@
+#include <Wire.h> //I2C
+
+int minutes;
+int seconds;
+int hours;
+
+boolean PM;
+
+int VFDhours[2];
+int VFDmins[2];
+
+///CHANGE TIME 
+const int EDITbutton = 14;
+const int HOURbutton= 15; 
+const int MINbutton = 16;
+ 
+boolean editMode = false;
+int hoursSET = 0;
+int minsSET = 0;
+
+
+void setup(){
+  Serial.begin(9600);
+  //I2C - RTC
+  Wire.begin();
+  Wire.beginTransmission(0x68); // address DS3231
+  Wire.write(0x0E); // select register
+  Wire.write(0b00011100); // write register bitmap, bit 7 is /EOSC
+  Wire.endTransmission();
+
+  pinMode(EDITbutton, INPUT);
+  pinMode(HOURbutton, INPUT);
+  pinMode(EDITbutton, INPUT);
+}
+
+void loop(){
+  getTime();  
+}
+
+
